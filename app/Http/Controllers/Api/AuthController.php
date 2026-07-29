@@ -40,7 +40,13 @@ class AuthController extends Controller
 
   public function logout()
   {
-    Auth::user()?->currentAccessToken()->delete();
+    $user = Auth::user();
+
+    if ($user instanceof \App\Models\User) {
+      /** @var \Laravel\Sanctum\PersonalAccessToken $token */
+      $token = $user->currentAccessToken();
+      $token?->delete();
+    }
 
     return $this->success(null, 'Logged out successfully.');
   }

@@ -90,9 +90,6 @@ class ProductService
     $product->delete();
   }
 
-  /**
-   * Set, increment, or decrement a product's stock quantity.
-   */
   public function updateStock(Product $product, string $operation, int $qty): Product
   {
     return DB::transaction(function () use ($product, $operation, $qty) {

@@ -15,7 +15,6 @@ class UpdateStockRequest extends FormRequest
   public function rules(): array
   {
     return [
-      // "set" replaces qty outright, "increment"/"decrement" adjust it by the given amount.
       'operation' => ['required', Rule::in(['set', 'increment', 'decrement'])],
       'qty' => ['required', 'integer', 'min:0'],
     ];
