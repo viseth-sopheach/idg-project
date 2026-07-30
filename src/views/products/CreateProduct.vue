@@ -86,7 +86,7 @@
           label="Discount Type"
           :options="[
             { value: 'none', label: 'No Discount' },
-            { value: 'fixed', label: 'Fixed Dollar' },
+            { value: 'fixed', label: 'Dollar' },
             { value: 'percentage', label: 'Percentage (%)' },
           ]"
         />

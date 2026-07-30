@@ -8,8 +8,11 @@ export const useAuthStore = defineStore('auth', {
   }),
   actions: {
     async login(credentials) {
-      await api.get('/sanctum/csrf-cookie')
       const response = await api.post('/login', credentials)
+      const token = response.data?.data?.token
+      if (token) {
+        localStorage.setItem('auth_token', token)
+      }
       await this.fetchUser()
       return response
     },
@@ -24,9 +27,13 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     async logout() {
-      await api.post('/logout')
-      this.user = null
-      this.isAuthenticated = false
+      try {
+        await api.post('/logout')
+      } finally {
+        localStorage.removeItem('auth_token')
+        this.user = null
+        this.isAuthenticated = false
+      }
     }
   }
 })
