@@ -1,4 +1,3 @@
-// src/composables/useSettings.js
 import { ref } from "vue";
 import api from "../services/api";
 import { useAuthStore } from "../stores/auth";
