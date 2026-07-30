@@ -19,6 +19,7 @@ class StoreOrderRequest extends FormRequest
       'discount_amount' => ['sometimes', 'numeric', 'min:0'],
       'delivery_fee' => ['sometimes', 'numeric', 'min:0'],
       'total_paid' => ['sometimes', 'numeric', 'min:0'],
+      'note' => ['nullable', 'string', 'max:300'],
 
       'items' => ['required', 'array', 'min:1'],
       'items.*.product_id' => ['required', 'integer', 'exists:products,id'],

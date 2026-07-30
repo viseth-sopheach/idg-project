@@ -29,11 +29,29 @@ class CustomerService
     return $query->orderBy('name')->paginate($perPage)->withQueryString();
   }
 
+  public function find(int $id): Customer
+  {
+    return Customer::findOrFail($id);
+  }
+
   public function create(array $data): Customer
   {
     $data['code'] = $this->generateCustomerCode();
+    $data['status'] = $data['status'] ?? Customer::STATUS_ACTIVE;
 
     return Customer::create($data);
+  }
+
+  public function update(Customer $customer, array $data): Customer
+  {
+    $customer->update($data);
+
+    return $customer->refresh();
+  }
+
+  public function delete(Customer $customer): void
+  {
+    $customer->delete();
   }
 
   protected function generateCustomerCode(): string

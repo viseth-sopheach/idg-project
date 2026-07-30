@@ -23,6 +23,5 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::get('/orders/{order}', [OrderController::class, 'show']);
   Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
 
-  Route::get('/customers', [CustomerController::class, 'index']);
-  Route::post('/customers', [CustomerController::class, 'store']);
+  Route::apiResource('customers', CustomerController::class);
 });

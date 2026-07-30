@@ -31,6 +31,7 @@ class Order extends Model
     'delivery_fee',
     'total_amount',
     'total_paid',
+    'note',
   ];
 
   protected function casts(): array

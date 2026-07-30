@@ -14,6 +14,7 @@ class OrderResource extends JsonResource
       'order_no' => $this->order_no,
       'order_date' => $this->order_date?->toDateString(),
       'status' => $this->status,
+      'note' => $this->note,
       'customer' => new CustomerResource($this->whenLoaded('customer')),
       'items' => OrderItemResource::collection($this->whenLoaded('items')),
       'items_count' => $this->whenCounted('items'),

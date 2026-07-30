@@ -15,6 +15,7 @@ class CustomerResource extends JsonResource
       'name' => $this->name,
       'phone' => $this->phone,
       'email' => $this->email,
+      'status' => $this->status,
       'created_at' => $this->created_at?->toIso8601String(),
     ];
   }

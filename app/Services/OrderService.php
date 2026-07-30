@@ -9,6 +9,7 @@ use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
@@ -58,13 +59,6 @@ class OrderService
     return Order::with(['customer', 'items.product'])->findOrFail($id);
   }
 
-  /**
-   * Create an order, validate stock for every line item, persist the order
-   * and its items, and decrement product stock — all inside a single
-   * database transaction. Throws InsufficientStockException (which rolls
-   * the transaction back automatically) if any product can't fulfil the
-   * requested quantity.
-   */
   public function create(array $data): Order
   {
     return DB::transaction(function () use ($data) {
@@ -81,6 +75,16 @@ class OrderService
       $shortages = [];
       $subTotal = 0;
       $lineItems = [];
+
+      // Any requested product_id that doesn't resolve to a real, locked
+      // row (e.g. it was deleted between validation and this query) must
+      // fail loudly instead of causing a null-pointer 500 further down.
+      $missingIds = $productIds->diff($products->keys());
+      if ($missingIds->isNotEmpty()) {
+        throw ValidationException::withMessages([
+          'items' => ['One or more selected products no longer exist: ' . $missingIds->implode(', ')],
+        ]);
+      }
 
       foreach ($data['items'] as $item) {
         /** @var Product $product */
@@ -129,6 +133,7 @@ class OrderService
         'delivery_fee' => $deliveryFee,
         'total_amount' => $totalAmount,
         'total_paid' => $totalPaid,
+        'note' => $data['note'] ?? null,
       ]);
 
       foreach ($lineItems as $line) {
