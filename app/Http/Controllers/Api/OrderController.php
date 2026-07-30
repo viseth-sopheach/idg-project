@@ -43,7 +43,16 @@ class OrderController extends Controller
 
   public function store(StoreOrderRequest $request)
   {
-    $order = $this->orders->create($request->validated());
+    try {
+      $order = $this->orders->create($request->validated());
+    } catch (\Throwable $e) {
+      \Illuminate\Support\Facades\Log::error('Order creation failed', [
+        'message' => $e->getMessage(),
+        'trace' => $e->getTraceAsString(),
+      ]);
+
+      throw $e;
+    }
 
     return $this->success(new OrderResource($order), 'Order created successfully.', 201);
   }
