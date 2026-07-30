@@ -33,6 +33,11 @@ class DashboardService
           'qty' => $product->qty,
         ]),
       'low_stock_count' => Product::where('qty', '<=', $lowStockThreshold)->count(),
+        // app/Services/DashboardService.php — add to summary()
+        'recent_orders' => Order::with('customer')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get(['id', 'order_no', 'customer_id', 'status', 'total_amount', 'created_at']),
     ];
   }
 }
