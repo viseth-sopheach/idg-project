@@ -10,14 +10,16 @@
       </div>
       <div class="flex flex-col items-end gap-1">
         <div class="flex gap-3">
-          <BaseButton variant="secondary">Cancel</BaseButton>
+          <BaseButton variant="secondary" @click="router.push('/orders')"
+            >Cancel</BaseButton
+          >
           <BaseButton variant="primary" @click="saveOrder" :disabled="saving">
             {{ saving ? "Saving..." : "Save Order" }}
           </BaseButton>
         </div>
-        <!-- <span v-if="saveError" class="text-xs text-red-500">{{
+        <span v-if="saveError" class="text-xs text-red-500">{{
           saveError
-        }}</span> -->
+        }}</span>
       </div>
     </div>
 
@@ -34,7 +36,10 @@
           <div class="flex gap-2">
             <select
               v-model="form.customer_id"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500"
+              :class="[
+                'w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500',
+                customerInvalid ? 'border-red-400' : 'border-gray-300',
+              ]"
             >
               <option value="" disabled selected>Select customer</option>
               <option v-for="c in customerOptions" :key="c.id" :value="c.id">
@@ -42,11 +47,15 @@
               </option>
             </select>
             <button
+              type="button"
               class="px-3 py-2 border border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 font-bold"
             >
               +
             </button>
           </div>
+          <p v-if="customerInvalid" class="text-xs text-red-500 mt-1">
+            Please select a customer.
+          </p>
         </div>
 
         <BaseInput
@@ -353,10 +362,13 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import api from "../../services/api";
 import BaseInput from "../../components/common/BaseInput.vue";
 import BaseSelect from "../../components/common/BaseSelect.vue";
 import BaseButton from "../../components/common/BaseButton.vue";
+
+const router = useRouter();
 
 const form = ref({
   customer_id: "",
@@ -372,6 +384,7 @@ const loadingCustomers = ref(false);
 const loadingProducts = ref(false);
 const saving = ref(false);
 const saveError = ref("");
+const customerInvalid = ref(false);
 
 const fetchCustomers = async () => {
   loadingCustomers.value = true;
@@ -455,18 +468,25 @@ const paymentDue = computed(() =>
 
 const saveOrder = async () => {
   saveError.value = "";
+  customerInvalid.value = false;
 
   const token = localStorage.getItem("auth_token");
   if (!token) {
     saveError.value = "You must be logged in to create an order.";
+    alert(saveError.value);
     return;
   }
+
   if (!form.value.customer_id) {
-    saveError.value = "Please select a customer.";
+    customerInvalid.value = true;
+    saveError.value = "Please select a customer before saving the order.";
+    alert("Please select a customer before saving the order.");
     return;
   }
+
   if (cart.value.length === 0) {
     saveError.value = "Add at least one product to the order.";
+    alert(saveError.value);
     return;
   }
 
@@ -507,7 +527,8 @@ const saveOrder = async () => {
     } else {
       saveError.value = data?.message || "Failed to create the order.";
     }
-  console.error(err);
+    alert(saveError.value);
+    console.error(err);
   } finally {
     saving.value = false;
   }
