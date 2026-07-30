@@ -489,7 +489,6 @@ const saveOrder = async () => {
 
     alert("Order created successfully!");
 
-    // reset form after a successful save
     cart.value = [];
     discountAmount.value = 0;
     deliveryFee.value = 0;

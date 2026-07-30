@@ -18,6 +18,7 @@
           type="text"
           placeholder="Search by name, phone or email..."
           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          @input="onSearchInput"
         />
       </div>
 
@@ -38,8 +39,10 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr v-for="(customer, index) in filteredCustomers" :key="customer.id" class="hover:bg-gray-50/50">
-              <td class="py-4 px-4 font-medium text-gray-600">{{ index + 1 }}</td>
+            <tr v-for="(customer, index) in customers" :key="customer.id" class="hover:bg-gray-50/50">
+              <td class="py-4 px-4 font-medium text-gray-600">
+                {{ (meta.current_page - 1) * meta.per_page + index + 1 }}
+              </td>
               <td class="py-4 px-4 font-semibold text-gray-800">{{ customer.code }}</td>
               <td class="py-4 px-4 font-medium text-gray-900">{{ customer.name }}</td>
               <td class="py-4 px-4 text-gray-600">{{ customer.phone }}</td>
@@ -60,21 +63,20 @@
                 </div>
               </td>
             </tr>
-            <tr v-if="filteredCustomers.length === 0">
+            <tr v-if="customers.length === 0">
               <td colspan="7" class="py-10 text-center text-gray-400">No customers found.</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="flex justify-between items-center text-sm text-gray-500 pt-2">
-        <div>Showing 1 to {{ filteredCustomers.length }} of {{ customers.length }} entries</div>
-        <div class="flex items-center gap-1">
-          <button class="p-2 border rounded-lg hover:bg-gray-50">&lt;</button>
-          <button class="px-3.5 py-1.5 bg-blue-600 text-white font-medium rounded-lg">1</button>
-          <button class="p-2 border rounded-lg hover:bg-gray-50">&gt;</button>
-        </div>
-      </div>
+      <BasePagination
+        :meta="meta"
+        :range-start="rangeStart"
+        :range-end="rangeEnd"
+        :loading="loading"
+        @change-page="goToPage"
+      />
     </div>
 
     <div v-if="showModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50" @click.self="closeModal">
@@ -117,14 +119,26 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import api from '../../services/api'
+import { ref, onMounted } from 'vue'
 import BaseButton from '../../components/common/BaseButton.vue'
+import BasePagination from '../../components/common/BasePagination.vue'
+import { useCustomers } from '../../composables/useCustomers'
 
-const search = ref('')
-const customers = ref([])
-const loading = ref(false)
-const errorMessage = ref('')
+const {
+  search,
+  customers,
+  loading,
+  errorMessage,
+  meta,
+  rangeStart,
+  rangeEnd,
+  fetchCustomers,
+  goToPage,
+  onSearchInput,
+  createCustomer,
+  updateCustomer,
+  deleteCustomer,
+} = useCustomers()
 
 const showModal = ref(false)
 const isEditing = ref(false)
@@ -137,29 +151,6 @@ const form = ref({
   phone: '',
   email: '',
   status: 'active',
-})
-
-const fetchCustomers = async () => {
-  loading.value = true
-  errorMessage.value = ''
-  try {
-    const res = await api.get('/customers')
-    customers.value = res.data?.data ?? []
-  } catch (err) {
-    errorMessage.value = 'Failed to load customers.'
-    console.error(err)
-  } finally {
-    loading.value = false
-  }
-}
-
-const filteredCustomers = computed(() => {
-  const term = search.value.toLowerCase()
-  return customers.value.filter(c =>
-    (c.name ?? '').toLowerCase().includes(term) ||
-    (c.code ?? '').toLowerCase().includes(term) ||
-    (c.email ?? '').toLowerCase().includes(term)
-  )
 })
 
 const resetForm = () => {
@@ -196,11 +187,10 @@ const submitForm = async () => {
   formError.value = ''
   try {
     if (isEditing.value) {
-      await api.put(`/customers/${editingId.value}`, form.value)
+      await updateCustomer(editingId.value, form.value)
     } else {
-      await api.post('/customers', form.value)
+      await createCustomer(form.value)
     }
-    await fetchCustomers()
     showModal.value = false
   } catch (err) {
     formError.value = err.response?.data?.message || 'Failed to save customer.'
@@ -213,13 +203,12 @@ const submitForm = async () => {
 const confirmDelete = async (customer) => {
   if (!window.confirm(`Delete customer "${customer.name}"?`)) return
   try {
-    await api.delete(`/customers/${customer.id}`)
-    customers.value = customers.value.filter(c => c.id !== customer.id)
+    await deleteCustomer(customer)
   } catch (err) {
     alert(err.response?.data?.message || 'Failed to delete customer.')
     console.error(err)
   }
 }
 
-onMounted(fetchCustomers)
+onMounted(() => fetchCustomers(1))
 </script>
