@@ -141,11 +141,24 @@ const calculatedSellingPrice = computed(() => {
 const saveProduct = async () => {
   try {
     await api.post("/products", {
-      ...form.value,
+      name: form.value.name,
+      sku: form.value.sku,
+      qty: form.value.quantity,
+      description: form.value.description || null,
+      cost_price: form.value.cost_price,
+      price: form.value.price,
+      discount_type: form.value.discount_type,
+      discount_value: form.value.discount_value,
       selling_price: calculatedSellingPrice.value,
+      status: form.value.status.toLowerCase(),
     });
     alert("Product created successfully!");
   } catch (err) {
+    if (err.response?.status === 422 && err.response.data?.errors) {
+      alert(Object.values(err.response.data.errors).flat().join(" "));
+    } else {
+      alert(err.response?.data?.message || "Failed to create product.");
+    }
     console.error(err);
   }
 };
