@@ -191,7 +191,7 @@ php artisan migrate --seed
 Edit `.env` as needed — key defaults:
 ```env
 APP_URL=http://localhost:8000
-DB_CONNECTION=sqlite
+DB_CONNECTION=pgsql
 SESSION_DRIVER=database
 QUEUE_CONNECTION=database
 CACHE_STORE=database
