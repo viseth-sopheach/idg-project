@@ -6,7 +6,7 @@
       <div
         class="text-2xl font-bold tracking-wide px-3 py-4 mb-4 flex items-center gap-2"
       >
-        <span class="text-blue-500">IDG</span> POS
+        <span class="text-blue-500">POS</span>SYSTEM
       </div>
 
       <nav class="space-y-1">

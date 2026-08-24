@@ -106,14 +106,20 @@
 
     <div class="grid grid-cols-12 gap-6">
       <div
-        class="col-span-6 bg-white rounded-xl border border-gray-200 p-5 space-y-4"
+        class="col-span-12 lg:col-span-6 bg-white rounded-xl border border-gray-200 p-4 sm:p-5 space-y-4"
       >
-        <h3 class="text-sm font-bold text-blue-600">Add Products</h3>
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-blue-600">Add Products</h3>
+          <span class="text-[11px] text-gray-400">
+            {{ productsMeta.total }} total
+          </span>
+        </div>
 
-        <div class="flex gap-3">
+        <!-- Search + filter -->
+        <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <div class="relative w-full">
             <svg
-              class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
+              class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -129,17 +135,18 @@
               v-model="productSearch"
               type="text"
               placeholder="Search by product name or SKU ..."
-              class="w-full border rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full h-9 border border-gray-300 rounded-lg pl-8 pr-3 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div class="relative shrink-0">
+
+          <div class="relative w-full sm:w-auto sm:shrink-0">
             <select
-              class="border rounded-lg pl-3 pr-7 py-1.5 text-xs bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full sm:w-auto h-9 border border-gray-300 rounded-lg pl-3 pr-8 text-xs bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option>All Categories</option>
             </select>
             <svg
-              class="w-3.5 h-3.5 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
+              class="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -154,103 +161,79 @@
           </div>
         </div>
 
-        <table class="w-full text-xs text-left">
-          <thead class="border-b bg-gray-50 text-gray-600 font-semibold">
-            <tr>
-              <th class="p-2">Product</th>
-              <th class="p-2">SKU</th>
-              <th class="p-2">Price</th>
-              <th class="p-2">Stock</th>
-              <th class="p-2 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y">
-            <tr v-for="product in filteredProducts" :key="product.id">
-              <td class="p-2 font-medium">
-                <div class="flex items-center gap-2">
-                  <img
-                    :src="product.image"
-                    :alt="product.name"
-                    class="w-8 h-8 rounded-md object-cover border border-gray-200"
-                  />
-                  <span>{{ product.name }}</span>
-                </div>
-              </td>
-              <td class="p-2 font-mono text-gray-500">{{ product.sku }}</td>
-              <td class="p-2 font-semibold">${{ product.price.toFixed(2) }}</td>
-              <td class="p-2">{{ product.stock }}</td>
-              <td class="p-2 text-center">
-                <button
-                  @click="addToCart(product)"
-                  class="px-3 py-1 bg-blue-50 text-blue-600 rounded-md font-medium hover:bg-blue-100"
-                >
-                  Add
-                </button>
-              </td>
-            </tr>
-            <tr v-if="filteredProducts.length === 0">
-              <td colspan="5" class="py-8 text-center text-gray-400">
-                No products found.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div
-          class="flex justify-between items-center text-[11px] text-gray-500 pt-1"
-        >
-          <div>
-            Showing 1 to {{ filteredProducts.length }} of
-            {{ productsMeta.total }} products
-          </div>
-          <div
-            v-if="productsMeta.last_page > 1"
-            class="flex items-center gap-1"
-          >
-            <button
-              v-for="page in productsMeta.last_page"
-              :key="page"
-              @click="goToProductsPage(page)"
-              :class="[
-                'w-6 h-6 flex items-center justify-center rounded-md font-medium',
-                page === productsMeta.current_page
-                  ? 'bg-blue-600 text-white'
-                  : 'hover:bg-gray-100',
-              ]"
-            >
-              {{ page }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-span-6 space-y-4">
-        <div
-          class="bg-white rounded-xl border border-gray-200 p-5 min-h-[220px]"
-        >
-          <h3 class="text-xs font-bold text-gray-800 mb-3">
-            Order Items ({{ cart.length }})
-          </h3>
-
-          <table class="w-full text-xs text-left">
-            <thead class="border-b bg-gray-50">
+        <!-- Table: scrolls horizontally, but Action column stays pinned -->
+        <div class="-mx-4 sm:mx-0 overflow-x-auto">
+          <table class="w-full min-w-[460px] text-xs text-left">
+            <thead class="border-b bg-gray-50 text-gray-500 font-semibold">
               <tr>
-                <th class="p-2">#</th>
-                <th class="p-2">Product</th>
-                <th class="p-2">Price</th>
-                <th class="p-2">Qty</th>
-                <th class="p-2">Total</th>
-                <th class="p-2"></th>
+                <th class="p-2 pl-4 sm:pl-2 whitespace-nowrap">Product</th>
+                <th class="p-2 whitespace-nowrap">SKU</th>
+                <th class="p-2 whitespace-nowrap text-right">Price</th>
+                <th class="p-2 whitespace-nowrap text-center">Stock</th>
+                <th
+                  class="p-2 pr-4 sm:pr-2 text-center whitespace-nowrap sticky right-0 bg-gray-50 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.1)]"
+                >
+                  Action
+                </th>
               </tr>
             </thead>
-            <tbody class="divide-y">
-              <tr v-if="cart.length === 0">
-                <td colspan="6" class="py-10">
-                  <div
-                    class="flex flex-col items-center justify-center gap-2 text-gray-400"
+            <tbody class="divide-y divide-gray-100">
+              <tr
+                v-for="product in filteredProducts"
+                :key="product.id"
+                class="hover:bg-gray-50/60 group"
+              >
+                <td class="p-2 pl-4 sm:pl-2 font-medium">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <img
+                      :src="product.image"
+                      :alt="product.name"
+                      class="w-8 h-8 rounded-md object-cover border border-gray-200 shrink-0"
+                    />
+                    <span class="truncate max-w-[110px] sm:max-w-[140px]">
+                      {{ product.name }}
+                    </span>
+                  </div>
+                </td>
+                <td class="p-2 font-mono text-gray-500 whitespace-nowrap">
+                  {{ product.sku }}
+                </td>
+                <td
+                  class="p-2 text-right font-semibold text-gray-900 whitespace-nowrap"
+                >
+                  ${{ product.price.toFixed(2) }}
+                </td>
+                <td class="p-2 text-center">
+                  <span
+                    :class="[
+                      'inline-flex items-center justify-center min-w-[28px] px-1.5 py-0.5 rounded-md text-[11px] font-semibold',
+                      product.stock <= 5
+                        ? 'bg-red-50 text-red-600'
+                        : 'text-gray-600',
+                    ]"
                   >
+                    {{ product.stock }}
+                  </span>
+                </td>
+                <!-- Sticky action cell: always visible, follows row bg on hover -->
+                <td
+                  class="p-2 pr-4 sm:pr-2 text-center sticky right-0 bg-white group-hover:bg-gray-50 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.1)] transition-colors"
+                >
+                  <button
+                    @click="addToCart(product)"
+                    :disabled="product.stock === 0"
+                    class="px-3 py-1 bg-blue-50 text-blue-600 rounded-md font-medium hover:bg-blue-100 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-50 whitespace-nowrap"
+                  >
+                    Add
+                  </button>
+                </td>
+              </tr>
+
+              <tr v-if="filteredProducts.length === 0">
+                <td colspan="5" class="py-10 text-center text-gray-400">
+                  <div class="flex flex-col items-center gap-2">
                     <svg
-                      class="w-10 h-10"
+                      class="w-8 h-8 text-gray-300"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -259,92 +242,244 @@
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="1.5"
-                        d="M3 3h2l.4 2M7 13h10l3.6-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m-10 0a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4z"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                       />
                     </svg>
-                    <span class="text-xs">No items added yet.</span>
-                    <span class="text-xs">Add products from the list.</span>
+                    <span class="text-xs">No products found.</span>
                   </div>
-                </td>
-              </tr>
-              <tr v-for="(item, i) in cart" v-else :key="item.id">
-                <td class="p-2">{{ i + 1 }}</td>
-                <td class="p-2 font-medium">{{ item.name }}</td>
-                <td class="p-2">${{ item.price.toFixed(2) }}</td>
-                <td class="p-2">
-                  <input
-                    type="number"
-                    min="1"
-                    v-model.number="item.qty"
-                    class="w-12 border rounded text-center"
-                  />
-                </td>
-                <td class="p-2 font-semibold">
-                  ${{ (item.price * item.qty).toFixed(2) }}
-                </td>
-                <td class="p-2">
-                  <button
-                    @click="removeFromCart(i)"
-                    class="text-red-500 font-bold"
-                  >
-                    ×
-                  </button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-          <h3 class="text-xs font-bold text-gray-800">Order Summary</h3>
-          <div class="grid grid-cols-2 gap-4 text-xs">
-            <div class="space-y-2">
-              <div class="flex justify-between">
-                <span>Sub Total</span
-                ><span class="font-bold">${{ subTotal.toFixed(2) }}</span>
+        <!-- Footer -->
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-[11px] text-gray-500 pt-1"
+        >
+          <div>
+            Showing 1 to {{ filteredProducts.length }} of
+            {{ productsMeta.total }} products
+          </div>
+          <div
+            v-if="productsMeta.last_page > 1"
+            class="flex items-center gap-1 flex-wrap"
+          >
+            <button
+              v-for="page in productsMeta.last_page"
+              :key="page"
+              @click="goToProductsPage(page)"
+              :class="[
+                'w-6 h-6 flex items-center justify-center rounded-md font-medium transition',
+                page === productsMeta.current_page
+                  ? 'bg-blue-600 text-white'
+                  : 'hover:bg-gray-100 text-gray-600',
+              ]"
+            >
+              {{ page }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-span-12 lg:col-span-6 space-y-4">
+        <!-- Order Items -->
+        <div class="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wide">
+              Order Items
+            </h3>
+            <span
+              class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full"
+            >
+              {{ cart.length }} item{{ cart.length === 1 ? "" : "s" }}
+            </span>
+          </div>
+
+          <!-- Empty state -->
+          <div
+            v-if="cart.length === 0"
+            class="flex flex-col items-center justify-center gap-2 text-gray-400 py-12"
+          >
+            <svg
+              class="w-10 h-10"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M3 3h2l.4 2M7 13h10l3.6-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m-10 0a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4z"
+              />
+            </svg>
+            <span class="text-xs font-medium">No items added yet</span>
+            <span class="text-xs">Add products from the list on the left</span>
+          </div>
+
+          <!-- Table (scrolls horizontally instead of breaking layout) -->
+          <div v-else class="-mx-4 sm:mx-0 overflow-x-auto">
+            <table class="w-full min-w-[420px] text-xs text-left">
+              <thead class="border-b bg-gray-50 text-gray-500 font-semibold">
+                <tr>
+                  <th class="p-2 pl-4 sm:pl-2 whitespace-nowrap">#</th>
+                  <th class="p-2 whitespace-nowrap">Product</th>
+                  <th class="p-2 whitespace-nowrap text-right">Price</th>
+                  <th class="p-2 whitespace-nowrap text-center">Qty</th>
+                  <th class="p-2 whitespace-nowrap text-right">Total</th>
+                  <th class="p-2 pr-4 sm:pr-2"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr
+                  v-for="(item, i) in cart"
+                  :key="item.id"
+                  class="hover:bg-gray-50/60"
+                >
+                  <td class="p-2 pl-4 sm:pl-2 text-gray-500">{{ i + 1 }}</td>
+                  <td
+                    class="p-2 font-medium text-gray-800 max-w-[140px] truncate"
+                  >
+                    {{ item.name }}
+                  </td>
+                  <td class="p-2 text-right text-gray-600 whitespace-nowrap">
+                    ${{ item.price.toFixed(2) }}
+                  </td>
+                  <td class="p-2">
+                    <input
+                      type="number"
+                      min="1"
+                      v-model.number="item.qty"
+                      class="w-14 h-8 border border-gray-300 rounded-md text-center text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </td>
+                  <td
+                    class="p-2 text-right font-semibold text-gray-900 whitespace-nowrap"
+                  >
+                    ${{ (item.price * item.qty).toFixed(2) }}
+                  </td>
+                  <td class="p-2 pr-4 sm:pr-2 text-center">
+                    <button
+                      @click="removeFromCart(i)"
+                      class="w-7 h-7 inline-flex items-center justify-center rounded-md text-red-500 hover:bg-red-50 font-bold transition"
+                      aria-label="Remove item"
+                    >
+                      ×
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div
+          class="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 space-y-4"
+        >
+          <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wide">
+            Order Summary
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <!-- Totals -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-500">Sub Total</span>
+                <span class="font-semibold text-gray-800"
+                  >${{ subTotal.toFixed(2) }}</span
+                >
               </div>
-              <div class="flex justify-between items-center">
-                <span>Discount</span>
-                <input
-                  type="number"
-                  v-model.number="discountAmount"
-                  class="w-16 border rounded px-1 text-right"
-                />
+
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-gray-500 shrink-0">Discount</span>
+                <div class="relative">
+                  <span
+                    class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+                    >$</span
+                  >
+                  <input
+                    type="number"
+                    min="0"
+                    v-model.number="discountAmount"
+                    class="w-24 h-8 border border-gray-300 rounded-md pl-5 pr-2 text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
-              <div class="flex justify-between items-center">
-                <span>Delivery</span>
-                <input
-                  type="number"
-                  v-model.number="deliveryFee"
-                  class="w-16 border rounded px-1 text-right"
-                />
+
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-gray-500 shrink-0">Delivery</span>
+                <div class="relative">
+                  <span
+                    class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+                    >$</span
+                  >
+                  <input
+                    type="number"
+                    min="0"
+                    v-model.number="deliveryFee"
+                    class="w-24 h-8 border border-gray-300 rounded-md pl-5 pr-2 text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
-              <div class="flex justify-between pt-2 border-t">
-                <span class="font-semibold">Total Amount</span
-                ><span class="font-bold">${{ totalAmount.toFixed(2) }}</span>
+
+              <div
+                class="flex items-center justify-between pt-3 border-t border-gray-100"
+              >
+                <span class="font-semibold text-gray-900">Total Amount</span>
+                <span class="text-sm font-bold text-gray-900"
+                  >${{ totalAmount.toFixed(2) }}</span
+                >
               </div>
             </div>
-            <div class="space-y-2 border-l pl-4">
+
+            <!-- Payment -->
+            <div
+              class="space-y-3 sm:border-l sm:pl-4 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100"
+            >
               <div>
-                <label class="block font-semibold">Total Paid</label>
-                <input
-                  type="number"
-                  v-model.number="totalPaid"
-                  class="w-full border rounded px-2 py-1"
-                />
-              </div>
-              <div>
-                <span class="block font-semibold">Payment Due</span>
-                <span class="text-base font-bold text-red-600"
-                  >${{ paymentDue.toFixed(2) }}</span
+                <label class="block font-semibold text-gray-700 mb-1"
+                  >Total Paid</label
                 >
+                <div class="relative">
+                  <span
+                    class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                    >$</span
+                  >
+                  <input
+                    type="number"
+                    min="0"
+                    v-model.number="totalPaid"
+                    class="w-full h-9 border border-gray-300 rounded-md pl-6 pr-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div
+                class="flex items-center justify-between sm:flex-col sm:items-start pt-1"
+              >
+                <span class="font-semibold text-gray-700">Payment Due</span>
+                <span
+                  :class="[
+                    'text-base font-bold',
+                    paymentDue > 0 ? 'text-red-600' : 'text-green-600',
+                  ]"
+                >
+                  ${{ paymentDue.toFixed(2) }}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-2">
-          <h3 class="text-xs font-bold text-gray-800">Order Note</h3>
+        <!-- Order Note -->
+        <div
+          class="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 space-y-2"
+        >
+          <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wide">
+            Order Note
+          </h3>
           <textarea
             v-model="form.note"
             maxlength="300"
