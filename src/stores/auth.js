@@ -35,5 +35,11 @@ export const useAuthStore = defineStore("auth", {
         this.isAuthenticated = false;
       }
     },
+    async forgotPassword(email) {
+      return api.post("/forgot-password", { email });
+    },
+    async resetPassword(payload) {
+      return api.post("/reset-password", payload);
+    },
   },
 });

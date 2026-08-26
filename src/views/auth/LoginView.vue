@@ -4,7 +4,7 @@
   >
     <div class="text-center">
       <h1 class="text-2xl font-bold text-gray-900">
-        <span class="text-blue-600">IDG</span> POS
+        <span class="text-blue-600">POS</span> SYSTEM
       </h1>
       <p class="text-sm text-gray-500 mt-1">Sign in to your account</p>
     </div>
@@ -14,7 +14,7 @@
         v-model="form.email"
         label="Email"
         type="email"
-        placeholder="admin@idg.com"
+        placeholder="example@gmail.com"
         required
         :disabled="loading"
       />
@@ -55,6 +55,14 @@
         </svg>
         {{ loading ? "Signing in..." : "Sign In" }}
       </BaseButton>
+      <div class="text-right -mt-2">
+        <router-link
+          to="/forgot-password"
+          class="text-xs font-medium text-blue-600 hover:underline"
+        >
+          Forgot password?
+        </router-link>
+      </div>
     </form>
   </div>
 </template>
